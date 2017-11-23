@@ -43,18 +43,6 @@ function is_connected()
     return $is_conn;
 }
 
-// function that's used to ensure there is no errors from trying to iterate through an object that is not iterable.
-function is_iterable($var)
-{
-    return $var !== null 
-        && (is_array($var) 
-            || $var instanceof Traversable 
-            || $var instanceof Iterator 
-            || $var instanceof IteratorAggregate
-			|| is_object($var)
-            );
-}
-
 // These two functions aid in getting a precise decimal value for pi.
 function bcfact($n)
 {
