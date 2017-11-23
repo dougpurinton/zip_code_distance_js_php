@@ -1,0 +1,22 @@
+if(isset($_POST['SubmitButton']))
+
+<form id="zipform" onsubmit="disableSubmit1()" method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
+
+<input type="submit" id="submitbutton_1" name="SubmitButton" value="Submit"/>
+
+if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
+{
+	if (is_iterable($result)) // only cycle through actual elements of the following array.
+	{
+		foreach($result['rows'] as $googledistance)
+		{
+		 $text2number = $googledistance['elements'][0]['distance']['text']; // Knowing the JSON format, extract only the distance part.
+		}
+	 $totalgoogledistance = preg_replace("/[^0-9.]/", "", $text2number); // store JUST the number (take out commas, letters, spaces etc.)
+	 $googledistancebool = TRUE;
+	}
+	else
+	{
+	 echo "Google's JSON results were not iterable. This application may need to be updated.<br>";
+	}
+}

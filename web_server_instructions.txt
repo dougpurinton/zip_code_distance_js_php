@@ -1,0 +1,101 @@
+
+WARNING!!! MOST IMPORT: Seriously...
+Both Apache and PHP must be either 32 or 64 bit. NO MIXING!
+
+Download the following:
+
+Apache (latest stable version)
+https://www.apachelounge.com/download/
+
+Visual C++ Redistributable Packages for Visual Studio (VC version must match apachelounge version)
+https://www.microsoft.com/en-us/download/details.aspx?id=48145
+
+PHP (Thread Safe)
+http://windows.php.net/download/
+
+Do the following:
+
+Install Visual C++ Redistributable Packages for Visual Studio.
+
+Copy Apache folder to "C:/" (ex. "C:/Apache24")
+(When you unzip to an other location, change ServerRoot in the httpd.conf,
+  and change in httpd.conf the Documenroot, Directories, ScriptAlias,
+  also when you use the extra folder config file(s) change to your location there. )
+
+Copy PHP folder to "C:/PHP" (ex. "C:/PHP/php_7.0.10")
+
+Go to Control Panel > System > Advanced system settings
+Under the tab "Advanced", click on "Environment Variables..."
+Under "System variables", select "Path" and click "Edit"
+In the text field "Variable value:" append the following 3 directories...
+
+C:\Apache24
+C:\Apache24\bin
+C:\PHP\php_7.0.10
+
+(The following commands can be found in "ReadMe.txt", that's inside the Apache httpd zip file.)
+Open CMD (command prompt) as Administrator and enter...
+
+httpd.exe -k install
+
+(Note: The following lines that need to be appended can be found in file "C:/PHP/php_7.0.10/install.txt" - line 658 for version 7.0.10,
+make sure you see a line in this section that reads "Example 2-6. PHP and Apache 2.0 as Module" so you know you're in the right section!
+You can also search for this in this file by searching "apache module")
+
+Open "C:/Apache24/conf/httpd.conf"
+At the very bottom of this file, append the following 3 lines...
+(Note: Actually LOOK in the "C:/PHP/php_7.0.10" folder you created earlier to verify that the file name is exactly correct!)
+
+LoadModule php7_module "C:/PHP/php_7.0.10/php7apache2_4.dll"
+AddType application/x-httpd-php .php
+PHPIniDir "C:/PHP/php_7.0.10"
+
+With this file ("httpd.conf") still open, search for "DirectoryIndex"
+(For Apache 2.4.x, the line in question should be on or around line 278)
+Change "DirectoryIndex index.html" to...
+
+DirectoryIndex index.php
+
+Next, search for "ServerName" (line 220)
+Uncomment "#ServerName www.example.com:80" and change it to...
+
+ServerName localhost:8080
+
+Search for "Listen" and find "Listen 80" (line 58) and replace it with...
+
+Listen 8080
+
+Search for "AllowOverride" and replace "AllowOverride none" (line 228) with...
+AllowOverride All
+
+Next, SAVE this file ("httpd.conf")
+
+Make a copy of "C:/PHP/php_7.0.10/php.ini-development" and rename that COPY to "php.ini" in the same folder.
+Open the newly created "php.ini" file and search for "extension_dir"
+Uncomment the line (on line 724 for version 7.0.10)...
+
+extension_dir = "ext"
+
+Search for "ssl" and uncomment the following line
+;extension=php_openssl.dll	(line 880)
+
+Search for "mysql" and uncomment the following lines
+;extension=php_mysqli.dll	(line 878)
+;extension=php_pdo_mysql.dll	(line 882)
+;extension=php_pdo_pgsql.dll	(line 885)
+;extension=php_pgsql.dll	(line 887)
+
+Next, SAVE this file ("php.ini")
+
+Next, create a new file called "C:/Apache24/htdocs/info.php" and open it
+Copy and paste the 3 lines below in this file...
+
+<?PHP
+phpinfo();
+?>
+
+Next, SAVE this file("info.php")
+That's it!!! DONE!
+Restart your computer, open the Apache Service Monitor ("C:/Apache24/bin/ApacheMonitor.exe") and START it
+then, open up your favorite web browser and navigate to "http://localhost:8080/info.php"
+If you see all of the PHP information and no errors, you are all set up for testing web sites and PHP!!!!!!!
