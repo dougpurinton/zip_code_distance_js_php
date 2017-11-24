@@ -1,14 +1,4 @@
 <!DOCTYPE html>
-<!--
-HTML Template, Version 1.0
-Created: August 12, 2015
-
-This is the notes section. DO NOT put notes above the DOCTYPE html, above.
-This template uses the standards from:
-   - HTML5 (October 28, 2014)
-   - ECMAScript Edition 6 (June 17, 2015)
-   - CSS3
--->
 <html lang = "en-US">
 <head>
 <title>Distance Calculator (Zip Code)</title>
@@ -30,6 +20,18 @@ $XMLFromExists = FALSE;
 $XMLToExists = FALSE;
 $url = "";
 //$url_key = "";
+
+function postIsHiddenValue($f_hidden_value)
+{
+	if (isset($_POST))
+	{
+		if (in_array($f_hidden_value, $_POST, true))
+		{
+		return true;
+		}
+	}
+return false;
+}
 
 function is_connected()
 {
@@ -67,7 +69,7 @@ function bcpi($precision)
 if (file_exists('ZipCodeData.xml'))
 {$xml = simplexml_load_file('ZipCodeData.xml');}
 
-if($_SERVER['REQUEST_METHOD'] === 'POST') //if(isset($_POST['SubmitButton'])) //check if form was submitted and start trying to calcualate the distance.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && postIsHiddenValue("zipform_value")) // check if form was submitted and start trying to calcualate the distance.
 {
 $inputfrom = $_POST['fromzip']; //get input text
 $inputto = $_POST['tozip']; //get input text
@@ -85,11 +87,8 @@ $inputto = preg_replace(
 );
 
 // LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 if (file_exists('ZipCodeData.xml'))
 {
-    //$xml = simplexml_load_file('ZipCodeData.xml'); // This has already been loaded
-
 	foreach($xml->ZipCode as $checkzip) // Checks to make sure both zip codes are listed in XML file.
 	{
 		if ((string) $checkzip->Code == $inputfrom)
@@ -147,10 +146,9 @@ else
 {
     exit('Failed to open ZipCodeData.xml.');
 }
-
 // END LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// GOOGLE API SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GOOGLE API SECTION /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			if (is_connected()) // No need to try continuing with these steps if you're not even connected to the interent!
 			{
 				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial";
@@ -186,7 +184,7 @@ else
 							 echo 'Google did not recognize the destination address.<br>';
 							}
 						}
-						else
+						else // If either origin or destination addresses are left blank, Google decides not to send back any data at all, even if one of the addresses was valid!
 						{
 							if (!strcmp($inputfrom, "") && !strcmp($inputto, ""))
 							{
@@ -264,16 +262,13 @@ else
 
 // This function returns the element passed to it by using its ID. It's used to simply improve the efficiency of coding event handlers.
 function $(id)
-{
-    return document.getElementById(id);
-}
+{return document.getElementById(id);}
 
 // This funtion will run when the page fully loads, and without causing any errors.
 function afterAllLoadsGoGoGo()
 {
-// This is an assignment that tells the script what to do based on the click event of the ID specified (which is "wrapper" in this case).
-    getfocus();
 	$('submitbutton_1').disabled = false;
+	getfocus();
 }
 
 function getfocus()
@@ -290,10 +285,11 @@ function getfocus()
 	?>
 }
 
-function disableSubmit1()
+function disableSubmit1(thisform)
 {
 	$('submitbutton_1').disabled = true;
-	$("zipform").submit();
+	thisform.action = "<?php echo htmlentities($_SERVER['PHP_SELF']); ?>"; // this action attribute can be changed to any existing PHP file.
+	thisform.submit();
 }
 
 // This is used to make sure the correct function (onload or load) is used and appended correctly, instead of recreating it (which can cause errors).
@@ -313,9 +309,9 @@ if (window.attachEvent) {
 <span style="color:red">JavaScript is not enabled! This page needs JavaScript in order to function.</span>
 </div>
 </noscript>
-<form id="zipform" method="post">
+<form id="zipform" method="post" action="" onsubmit="disableSubmit1(this)">
   <label for="fromzip">From: </label>
-  <input type="text" name="fromzip" autocomplete="off" id="fromzip" value="<?php if ($googleFromExists || $XMLFromExists) echo $inputfrom; ?>" />
+  <input type="text" name="fromzip" autocomplete="off" id="fromzip" value="<?php if ($googleFromExists || $XMLFromExists) echo $inputfrom; ?>"/>
   <br>
   <label for="tozip">To: </label>
   <input type="text" name="tozip" autocomplete="off" id="tozip" value="<?php if ($googleToExists || $XMLToExists) echo $inputto; ?>"/>
@@ -326,7 +322,8 @@ if (window.attachEvent) {
   <label for="drivedistance">Driving Distance: </label>
   <td><input type='text' id='drivedistance' value="<?php if ($googledistancebool == TRUE) echo $googledistance; ?>" readonly ="true" style="cursor:text;"/></td>
   <br>
-  <input type="submit" name="SubmitButton" id="submitbutton_1" value="Submit" onclick="disableSubmit1()" disabled="disabled" />
+  <input type="hidden" name="hidden_form_name" value="zipform_value"/>
+  <input type="submit" id="submitbutton_1" name="SubmitButton" value="Submit" disabled="disabled"/>
 </form>
 
 </body>
