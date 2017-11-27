@@ -31,9 +31,7 @@ function IsHiddenValue($f_hidden_value)
 		if (isset($the_request['hidden_form_name']))
 		{
 			if ($the_request['hidden_form_name'] === $f_hidden_value)
-			{
-			 return true;
-			}
+			{return true;}
 		}
 	}
  return false;
@@ -54,21 +52,20 @@ $url = "";
 
 function is_connected()
 {
-    $connected = @fsockopen("www.maps.googleapis.com", 80); //website, port  (try 80 or 443)
-    if ($connected){
-        $is_conn = true; //action when connected
-        fclose($connected);
-    }else{
-        $is_conn = false; //action in connection failure
+ $connected = @fsockopen("www.maps.googleapis.com", 80); //website, port  (try 80 or 443)
+	if ($connected)
+	{
+	 $is_conn = true; //action when connected
+	 fclose($connected);
     }
-    return $is_conn;
+	else
+	{$is_conn = false;} //action in connection failure
+ return $is_conn;
 }
 
 // These two functions aid in getting a precise decimal value for pi.
 function bcfact($n)
-{
-    return ($n == 0 || $n== 1) ? 1 : bcmul($n,bcfact($n-1));
-}
+{return ($n === 0 || $n === 1) ? 1 : bcmul($n,bcfact($n-1));}
 
 function bcpi($precision)
 {
@@ -110,14 +107,14 @@ if (file_exists('ZipCodeData.xml'))
 {
 	foreach($xml->ZipCode as $checkzip) // Checks to make sure both zip codes are listed in XML file.
 	{
-		if ((string) $checkzip->Code == $inputfrom)
+		if ((string) $checkzip->Code === $inputfrom)
 		{
 			$LongitudeFrom = $checkzip->Longitude;
 			$LatitudeFrom = $checkzip->Latitude;
 			$XMLFromExists = TRUE;
 		}
 		
-		if ((string) $checkzip->Code == $inputto)
+		if ((string) $checkzip->Code === $inputto)
 		{
 			$LongitudeTo = $checkzip->Longitude;
 			$LatitudeTo = $checkzip->Latitude;
@@ -125,18 +122,12 @@ if (file_exists('ZipCodeData.xml'))
 		}
 	}
 	
-if ($XMLFromExists == FALSE and $XMLToExists == FALSE)
-{
-	echo 'Neither zip codes matched any stored locations in the XML file.<br>';
-}
-  elseif ($XMLFromExists == FALSE and $XMLToExists == TRUE)
-  {
-	  echo 'The beginning zip code does not match any stored location in the XML file.<br>';
-  }
-    elseif ($XMLFromExists == TRUE and $XMLToExists == FALSE)
-	{
-		echo 'The ending zip code does not match any stored location in the XML file.<br>';
-	}
+if ($XMLFromExists === FALSE and $XMLToExists === FALSE)
+{echo 'Neither zip codes matched any stored locations in the XML file.<br>';}
+  elseif ($XMLFromExists === FALSE and $XMLToExists === TRUE)
+  {echo 'The beginning zip code does not match any stored location in the XML file.<br>';}
+    elseif ($XMLFromExists === TRUE and $XMLToExists === FALSE)
+	{echo 'The ending zip code does not match any stored location in the XML file.<br>';}
 		else
 		{
 		    $earthsRadius = 3956.087107103049;
@@ -162,9 +153,7 @@ if ($XMLFromExists == FALSE and $XMLToExists == FALSE)
 		}
 }
 else
-{
-    exit('Failed to open ZipCodeData.xml.');
-}
+{exit('Failed to open ZipCodeData.xml.');}
 // END LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GOOGLE API SECTION /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,16 +177,14 @@ else
 					{
 						if (isset($result['origin_addresses'][0]) && isset($result['destination_addresses'][0]))
 						{
-							if (!strcmp($result['origin_addresses'][0], "") && !strcmp($result['destination_addresses'][0], ""))
-							{
-							 echo 'Google did not recognize the origin or destination address.<br>';
-							}
-							elseif (!strcmp($result['origin_addresses'][0], "") && strcmp($result['destination_addresses'][0], ""))
+							if (($result['origin_addresses'][0] === "") && ($result['destination_addresses'][0] === ""))
+							{echo 'Google did not recognize the origin or destination address.<br>';}
+							elseif (($result['origin_addresses'][0] === "") && ($result['destination_addresses'][0] !== ""))
 							{
 							 $googleToExists = TRUE;
 							 echo 'Google did not recognize the origin address.<br>';
 							}
-							elseif (!strcmp($result['destination_addresses'][0], "") && strcmp($result['origin_addresses'][0], ""))
+							elseif (($result['destination_addresses'][0] === "") && ($result['origin_addresses'][0] !== ""))
 							{
 							 $googleFromExists = TRUE;
 							 echo 'Google did not recognize the destination address.<br>';
@@ -205,11 +192,9 @@ else
 						}
 						else // If either origin or destination addresses are left blank, Google decides not to send back any data at all, even if one of the addresses was valid!
 						{
-							if (!strcmp($inputfrom, "") && !strcmp($inputto, ""))
-							{
-								echo 'Google: Both the origin and destination address is blank.<br>';
-							}
-							elseif (!strcmp($inputfrom, "") && strcmp($inputto, ""))
+							if (($inputfrom === "") && ($inputto === ""))
+							{echo 'Google: Both the origin and destination address is blank.<br>';}
+							elseif (($inputfrom === "") && ($inputto !== ""))
 							{
 								$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputto&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial";
 								//$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputto&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
@@ -218,20 +203,14 @@ else
 								if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
 								{
 									if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-									{
-									 $googleToExists = TRUE;
-									}
+									{$googleToExists = TRUE;}
 								}
-								if ($googleToExists == TRUE)
-								{
-									echo 'Google: The origin address is blank.<br>';
-								}
+								if ($googleToExists === TRUE)
+								{echo 'Google: The origin address is blank.<br>';}
 								else
-								{
-									echo 'Google: The origin address is blank and the destination address was not recognized by Google.';
-								}
+								{echo 'Google: The origin address is blank and the destination address was not recognized by Google.';}
 							}
-							elseif (strcmp($inputfrom, "") && !strcmp($inputto, ""))
+							elseif (($inputfrom !== "") && ($inputto === ""))
 							{
 								$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputfrom&mode=driving&language=en-EN&sensor=false&units=imperial";
 								//$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputfrom&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
@@ -240,31 +219,21 @@ else
 								if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
 								{
 									if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-									{
-									 $googleFromExists = TRUE;
-									}
+									{$googleFromExists = TRUE;}
 								}
-								if ($googleFromExists == TRUE)
-								{
-									echo 'Google: The destination address is blank.<br>';
-								}
+								if ($googleFromExists === TRUE)
+								{echo 'Google: The destination address is blank.<br>';}
 								else
-								{
-									echo 'Google: The destination address is blank and the origin address was not recognized by Google.<br>';
-								}
+								{echo 'Google: The destination address is blank and the origin address was not recognized by Google.<br>';}
 							}
 						}
 					}
 				}
 				else
-				{
-				echo "There was a problem retrieving information from Google's servers.<br>The website might have changed.<br>";
-				}
+				{echo "There was a problem retrieving information from Google's servers.<br>The website might have changed.<br>";}
 			}
 			else
-			{
-			echo 'Can only calculate driving distance when connected to the internet. Please check your connection.<br>';
-			}
+			{echo 'Can only calculate driving distance when connected to the internet. Please check your connection.<br>';}
 // END GOOGLE API SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
@@ -286,25 +255,25 @@ function $(id)
 // This funtion will run when the page fully loads, and without causing any errors.
 function afterAllLoadsGoGoGo()
 {
-	$('submitbutton_1').disabled = false;
-	getfocus();
+ $('submitbutton_1').disabled = false;
+ getfocus();
 }
 
 function getfocus()
 {
-	<?php
-	if ($googleFromExists == TRUE && $googleToExists == FALSE)
+ <?php
+	if ($googleFromExists === TRUE && $googleToExists === FALSE)
 	{echo "$('tozip').focus();\n";}
 	else
 	{echo "$('fromzip').focus();\n";}
-	?>
+ ?>
 }
 
 function disableSubmit1(thisform)
 {
-	$('submitbutton_1').disabled = true;
-	thisform.action = "<?php echo htmlentities($_SERVER['PHP_SELF']); ?>"; // this action attribute can be changed to any existing PHP file.
-	thisform.submit();
+ $('submitbutton_1').disabled = true;
+ thisform.action = "<?php echo htmlentities($_SERVER['PHP_SELF'], ENT_QUOTES, "UTF-8"); ?>"; // this action attribute can be changed to any existing PHP file.
+ thisform.submit();
 }
 
 // This is used to make sure the correct function (onload or load) is used and appended correctly, instead of recreating it (which can cause errors).
@@ -332,10 +301,10 @@ else
   <input type="text" name="tozip" autocomplete="off" id="tozip" value="<?php if ($googleToExists || $XMLToExists) echo $inputto; ?>"/>
   <br>
   <label for='crowdistance'>Crow Distance: </label>
-  <td><input type='text' id='crowdistance' value="<?php if ($XMLFromExists == TRUE && $XMLToExists == TRUE) echo $distance; ?>" readonly ="true" style="cursor:text;"/></td>
+  <td><input type='text' id='crowdistance' value="<?php if ($XMLFromExists === TRUE && $XMLToExists === TRUE) echo $distance; ?>" readonly ="true" style="cursor:text;"/></td>
   <br>
   <label for="drivedistance">Driving Distance: </label>
-  <td><input type='text' id='drivedistance' value="<?php if ($googledistancebool == TRUE) echo $googledistance; ?>" readonly ="true" style="cursor:text;"/></td>
+  <td><input type='text' id='drivedistance' value="<?php if ($googledistancebool === TRUE) echo $googledistance; ?>" readonly ="true" style="cursor:text;"/></td>
   <br>
   <input type="submit" id="submitbutton_1" name="SubmitButton" value="Submit" disabled="disabled"/>
 </form>
