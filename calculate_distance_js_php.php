@@ -8,6 +8,37 @@
 // The file test.xml contains an XML document with a root element
 // and at least an element /[root]/title.
 
+$the_request = null;
+$input_the_method = null;
+
+// This check excludes 'HEAD' and 'PUT'.
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
+{
+ $the_request = &$_POST;
+ $input_the_method = INPUT_POST;
+}
+elseif ($_SERVER['REQUEST_METHOD'] === 'GET')
+{
+ $the_request = &$_GET;
+ $input_the_method = INPUT_GET;
+}
+
+function IsHiddenValue($f_hidden_value)
+{
+ global $the_request;
+	if (!is_null($the_request))
+	{
+		if (isset($the_request['hidden_form_name']))
+		{
+			if ($the_request['hidden_form_name'] === $f_hidden_value)
+			{
+			 return true;
+			}
+		}
+	}
+ return false;
+}
+
 // Declare all variables that are defined in the HTML body section (bottom of file) to avoid ugly undefined warnings.
 $distance = 0;
 $inputfrom = "";
@@ -20,18 +51,6 @@ $XMLFromExists = FALSE;
 $XMLToExists = FALSE;
 $url = "";
 //$url_key = "";
-
-function postIsHiddenValue($f_hidden_value)
-{
-	if (isset($_POST))
-	{
-		if (in_array($f_hidden_value, $_POST, true))
-		{
-		return true;
-		}
-	}
-return false;
-}
 
 function is_connected()
 {
@@ -69,10 +88,10 @@ function bcpi($precision)
 if (file_exists('ZipCodeData.xml'))
 {$xml = simplexml_load_file('ZipCodeData.xml');}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && postIsHiddenValue("zipform_value")) // check if form was submitted and start trying to calcualate the distance.
+if (IsHiddenValue("zipform_value")) // check if form was submitted and start trying to calcualate the distance.
 {
-$inputfrom = $_POST['fromzip']; //get input text
-$inputto = $_POST['tozip']; //get input text
+$inputfrom = filter_input($input_the_method, 'fromzip', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$inputto = filter_input($input_the_method, 'tozip', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
 $inputfrom = preg_replace(
     "/(\t|\n|\v|\f|\r| |\xC2\x85|\xc2\xa0|\xe1\xa0\x8e|\xe2\x80[\x80-\x8D]|\xe2\x80\xa8|\xe2\x80\xa9|\xe2\x80\xaF|\xe2\x81\x9f|\xe2\x81\xa0|\xe3\x80\x80|\xef\xbb\xbf)+/",
@@ -275,13 +294,9 @@ function getfocus()
 {
 	<?php
 	if ($googleFromExists == TRUE && $googleToExists == FALSE)
-	{
-		echo "$('tozip').focus();\n";
-	}
+	{echo "$('tozip').focus();\n";}
 	else
-	{
-		echo "$('fromzip').focus();\n";
-	}
+	{echo "$('fromzip').focus();\n";}
 	?>
 }
 
@@ -293,13 +308,12 @@ function disableSubmit1(thisform)
 }
 
 // This is used to make sure the correct function (onload or load) is used and appended correctly, instead of recreating it (which can cause errors).
-if (window.attachEvent) {
-    window.attachEvent('onload', afterAllLoadsGoGoGo);
-} else if (window.addEventListener) {
-    window.addEventListener('load', afterAllLoadsGoGoGo, false);
-} else {
-    document.addEventListener('load', afterAllLoadsGoGoGo, false);
-}
+if (window.attachEvent)
+{window.attachEvent('onload', afterAllLoadsGoGoGo);}
+else if (window.addEventListener)
+{window.addEventListener('load', afterAllLoadsGoGoGo, false);}
+else
+{document.addEventListener('load', afterAllLoadsGoGoGo, false);}
 </script>
 
 </head>
@@ -310,6 +324,7 @@ if (window.attachEvent) {
 </div>
 </noscript>
 <form id="zipform" method="post" action="" onsubmit="disableSubmit1(this)">
+  <input type="hidden" name="hidden_form_name" value="zipform_value"/>
   <label for="fromzip">From: </label>
   <input type="text" name="fromzip" autocomplete="off" id="fromzip" value="<?php if ($googleFromExists || $XMLFromExists) echo $inputfrom; ?>"/>
   <br>
@@ -322,7 +337,6 @@ if (window.attachEvent) {
   <label for="drivedistance">Driving Distance: </label>
   <td><input type='text' id='drivedistance' value="<?php if ($googledistancebool == TRUE) echo $googledistance; ?>" readonly ="true" style="cursor:text;"/></td>
   <br>
-  <input type="hidden" name="hidden_form_name" value="zipform_value"/>
   <input type="submit" id="submitbutton_1" name="SubmitButton" value="Submit" disabled="disabled"/>
 </form>
 
