@@ -42,13 +42,14 @@ $distance = 0;
 $inputfrom = "";
 $inputto = "";
 $googledistance = 0;
-$googledistancebool = FALSE;
-$googleFromExists = FALSE;
-$googleToExists = FALSE;
-$XMLFromExists = FALSE;
-$XMLToExists = FALSE;
+$googledistancebool = false;
+$googleFromExists = false;
+$googleToExists = false;
+$XMLFromExists = false;
+$XMLToExists = false;
 $url = "";
 //$url_key = "";
+$XML_file_name = 'ZipCodeData.xml';
 
 function is_connected()
 {
@@ -82,8 +83,8 @@ function bcpi($precision)
 
 // Load this big file that stores most of the location information for each zip code in the Continental United States,
 // and load it as sooon as possible so when the submit button is pressed, it can already be loaded.
-if (file_exists('ZipCodeData.xml'))
-{$xml = simplexml_load_file('ZipCodeData.xml');}
+if (file_exists($XML_file_name))
+{$XML_file_data = simplexml_load_file($XML_file_name);}
 
 if (IsHiddenValue("zipform_value")) // check if form was submitted and start trying to calcualate the distance.
 {
@@ -103,30 +104,30 @@ $inputto = preg_replace(
 );
 
 // LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if (file_exists('ZipCodeData.xml'))
+if (file_exists($XML_file_name))
 {
-	foreach($xml->ZipCode as $checkzip) // Checks to make sure both zip codes are listed in XML file.
+	foreach($XML_file_data->ZipCode as $checkzip) // Checks to make sure both zip codes are listed in XML file.
 	{
 		if ((string) $checkzip->Code === $inputfrom)
 		{
 			$LongitudeFrom = $checkzip->Longitude;
 			$LatitudeFrom = $checkzip->Latitude;
-			$XMLFromExists = TRUE;
+			$XMLFromExists = true;
 		}
 		
 		if ((string) $checkzip->Code === $inputto)
 		{
 			$LongitudeTo = $checkzip->Longitude;
 			$LatitudeTo = $checkzip->Latitude;
-			$XMLToExists = TRUE;
+			$XMLToExists = true;
 		}
 	}
 	
-if ($XMLFromExists === FALSE and $XMLToExists === FALSE)
+if ($XMLFromExists === false and $XMLToExists === false)
 {echo 'Neither zip codes matched any stored locations in the XML file.<br>';}
-  elseif ($XMLFromExists === FALSE and $XMLToExists === TRUE)
+  elseif ($XMLFromExists === false and $XMLToExists === true)
   {echo 'The beginning zip code does not match any stored location in the XML file.<br>';}
-    elseif ($XMLFromExists === TRUE and $XMLToExists === FALSE)
+    elseif ($XMLFromExists === true and $XMLToExists === false)
 	{echo 'The ending zip code does not match any stored location in the XML file.<br>';}
 		else
 		{
@@ -153,7 +154,7 @@ if ($XMLFromExists === FALSE and $XMLToExists === FALSE)
 		}
 }
 else
-{exit('Failed to open ZipCodeData.xml.');}
+{exit("Failed to open $XML_file_name.");}
 // END LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GOOGLE API SECTION /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,9 +170,9 @@ else
 					if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
 					{
 					 $googledistance = preg_replace("/[^0-9.]/", "", $result['rows'][0]['elements'][0]['distance']['text']); // store JUST the number (take out commas, letters, spaces etc.)
-					 $googledistancebool = TRUE;
-					 $googleFromExists = TRUE;
-					 $googleToExists = TRUE;
+					 $googledistancebool = true;
+					 $googleFromExists = true;
+					 $googleToExists = true;
 					}
 					else
 					{
@@ -181,12 +182,12 @@ else
 							{echo 'Google did not recognize the origin or destination address.<br>';}
 							elseif (($result['origin_addresses'][0] === "") && ($result['destination_addresses'][0] !== ""))
 							{
-							 $googleToExists = TRUE;
+							 $googleToExists = true;
 							 echo 'Google did not recognize the origin address.<br>';
 							}
 							elseif (($result['destination_addresses'][0] === "") && ($result['origin_addresses'][0] !== ""))
 							{
-							 $googleFromExists = TRUE;
+							 $googleFromExists = true;
 							 echo 'Google did not recognize the destination address.<br>';
 							}
 						}
@@ -203,9 +204,9 @@ else
 								if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
 								{
 									if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-									{$googleToExists = TRUE;}
+									{$googleToExists = true;}
 								}
-								if ($googleToExists === TRUE)
+								if ($googleToExists === true)
 								{echo 'Google: The origin address is blank.<br>';}
 								else
 								{echo 'Google: The origin address is blank and the destination address was not recognized by Google.';}
@@ -219,9 +220,9 @@ else
 								if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
 								{
 									if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-									{$googleFromExists = TRUE;}
+									{$googleFromExists = true;}
 								}
-								if ($googleFromExists === TRUE)
+								if ($googleFromExists === true)
 								{echo 'Google: The destination address is blank.<br>';}
 								else
 								{echo 'Google: The destination address is blank and the origin address was not recognized by Google.<br>';}
@@ -262,7 +263,8 @@ function afterAllLoadsGoGoGo()
 function getfocus()
 {
  <?php
-	if ($googleFromExists === TRUE && $googleToExists === FALSE)
+	if (($googleFromExists === true && $googleToExists === false && !($XMLFromExists === false && $XMLToExists === true)) ||
+	   ($XMLFromExists === true && $XMLToExists === false && !($googleFromExists === false && $googleToExists === true)))
 	{echo "$('tozip').focus();\n";}
 	else
 	{echo "$('fromzip').focus();\n";}
@@ -272,7 +274,7 @@ function getfocus()
 function disableSubmit1(thisform)
 {
  $('submitbutton_1').disabled = true;
- thisform.action = "<?php echo htmlentities($_SERVER['PHP_SELF'], ENT_QUOTES, "UTF-8"); ?>"; // this action attribute can be changed to any existing PHP file.
+ //thisform.action = "<?php echo htmlentities($_SERVER['PHP_SELF'], ENT_QUOTES, "UTF-8"); ?>"; // this action attribute can be changed to any existing PHP file.
  thisform.submit();
 }
 
@@ -301,10 +303,10 @@ else
   <input type="text" name="tozip" autocomplete="off" id="tozip" value="<?php if ($googleToExists || $XMLToExists) echo $inputto; ?>"/>
   <br>
   <label for='crowdistance'>Crow Distance: </label>
-  <td><input type='text' id='crowdistance' value="<?php if ($XMLFromExists === TRUE && $XMLToExists === TRUE) echo $distance; ?>" readonly ="true" style="cursor:text;"/></td>
+  <td><input type='text' id='crowdistance' value="<?php if ($XMLFromExists === true && $XMLToExists === true) echo $distance; ?>" readonly ="true" style="cursor:text;"/></td>
   <br>
   <label for="drivedistance">Driving Distance: </label>
-  <td><input type='text' id='drivedistance' value="<?php if ($googledistancebool === TRUE) echo $googledistance; ?>" readonly ="true" style="cursor:text;"/></td>
+  <td><input type='text' id='drivedistance' value="<?php if ($googledistancebool === true) echo $googledistance; ?>" readonly ="true" style="cursor:text;"/></td>
   <br>
   <input type="submit" id="submitbutton_1" name="SubmitButton" value="Submit" disabled="disabled"/>
 </form>
