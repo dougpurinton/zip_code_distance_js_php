@@ -1,6 +1,3 @@
-<?php
-session_start();
-?>
 <!DOCTYPE html>
 <html lang = "en-US">
 <head>
@@ -97,9 +94,7 @@ if (!isset($_SESSION['XML_file_data']))
 	 $_SESSION['XML_file_exists'] = true;
 	}
 	else
-	{
-		$_SESSION['XML_file_exists'] = false;
-	}
+	{$_SESSION['XML_file_exists'] = false;}
 }
 else
 {
@@ -112,15 +107,21 @@ else
 		}
 	}
 	else
-	{
-	 $_SESSION['XML_file_exists'] = false;
-	}
+	{$_SESSION['XML_file_exists'] = false;}
 }
 
 if (IsHiddenValue("zipform_value")) // check if form was submitted and start trying to calcualate the distance.
 {
 $inputfrom = filter_input($input_the_method, 'fromzip', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $inputto = filter_input($input_the_method, 'tozip', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+// These two 'if' statements exist because if 'fromzip' or 'tozip' textboxes are left blank,
+// Google won't return anything, even if one textbox contains a valid zip code.
+if ($inputfrom === "")
+{$inputfrom = '0';}
+
+if ($inputto === "")
+{$inputto = '0';}
 
 $inputfrom = preg_replace(
     "/(\t|\n|\v|\f|\r| |\xC2\x85|\xc2\xa0|\xe1\xa0\x8e|\xe2\x80[\x80-\x8D]|\xe2\x80\xa8|\xe2\x80\xa9|\xe2\x80\xaF|\xe2\x81\x9f|\xe2\x81\xa0|\xe3\x80\x80|\xef\xbb\xbf)+/",
@@ -135,8 +136,7 @@ $inputto = preg_replace(
 );
 
 // LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//if (file_exists($XML_file_name))
-if ($_SESSION['XML_file_exists'] === true)
+if (file_exists($XML_file_name))
 {
 	foreach($XML_file_data->ZipCode as $checkzip) // Checks to make sure both zip codes are listed in XML file.
 	{
@@ -155,35 +155,35 @@ if ($_SESSION['XML_file_exists'] === true)
 		}
 	}
 	
-if ($XMLFromExists === false and $XMLToExists === false)
-{echo 'Neither zip codes matched any stored locations in the XML file.<br>';}
-  elseif ($XMLFromExists === false and $XMLToExists === true)
-  {echo 'The beginning zip code does not match any stored location in the XML file.<br>';}
-    elseif ($XMLFromExists === true and $XMLToExists === false)
+	if ($XMLFromExists === false and $XMLToExists === false)
+	{echo 'Neither zip codes matched any stored locations in the XML file.<br>';}
+	elseif ($XMLFromExists === false and $XMLToExists === true)
+	{echo 'The beginning zip code does not match any stored location in the XML file.<br>';}
+	elseif ($XMLFromExists === true and $XMLToExists === false)
 	{echo 'The ending zip code does not match any stored location in the XML file.<br>';}
-		else
-		{
-		    $earthsRadius = 3956.087107103049;
-            $latitude1Radians = (bcdiv(strval($LatitudeFrom),strval(180),15)) * bcpi(14);
-            $longitude1Radians = (bcdiv(strval($LongitudeFrom),strval(180),15)) * bcpi(14);
-            $latitude2Radians = (bcdiv(strval($LatitudeTo),strval(180),15)) * bcpi(14);
-            $longitude2Radians = (bcdiv(strval($LongitudeTo),strval(180),15)) * bcpi(14);
+	else
+	{
+	 $earthsRadius = 3956.087107103049;
+	 $latitude1Radians = (bcdiv(strval($LatitudeFrom),strval(180),15)) * bcpi(14);
+	 $longitude1Radians = (bcdiv(strval($LongitudeFrom),strval(180),15)) * bcpi(14);
+	 $latitude2Radians = (bcdiv(strval($LatitudeTo),strval(180),15)) * bcpi(14);
+	 $longitude2Radians = (bcdiv(strval($LongitudeTo),strval(180),15)) * bcpi(14);
 
-            $distance = ($earthsRadius * 2) *
-            asin(
-            sqrt(
-            pow(
-            sin(($latitude1Radians - 
-                 $latitude2Radians) / 2), 2) +
-            cos($latitude1Radians) *
-            cos($latitude2Radians) *
-            pow(
-            sin(($longitude1Radians - 
-                 $longitude2Radians) / 2), 2)
-            ));
-			
-			$distance = round($distance, 2, PHP_ROUND_HALF_UP);
-		}
+	 $distance = ($earthsRadius * 2) *
+	 asin(
+	 sqrt(
+	 pow(
+	 sin(($latitude1Radians - 
+	 $latitude2Radians) / 2), 2) +
+	 cos($latitude1Radians) *
+	 cos($latitude2Radians) *
+	 pow(
+	 sin(($longitude1Radians - 
+	 $longitude2Radians) / 2), 2)
+	 ));
+
+	 $distance = round($distance, 2, PHP_ROUND_HALF_UP);
+	}
 }
 else
 {
@@ -193,83 +193,49 @@ else
 // END LOCAL XML FILE SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GOOGLE API SECTION /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			if (is_connected()) // No need to try continuing with these steps if you're not even connected to the interent!
-			{
-				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial";
-				//$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
-				$data = @file_get_contents($url); // $data = @file_get_contents($url_key);
-				$result = json_decode($data, true);
+if (is_connected()) // No need to try continuing with these steps if you're not even connected to the interent!
+{
+ $url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial";
+ //$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
+ $data = @file_get_contents($url); // $data = @file_get_contents($url_key);
+ $result = json_decode($data, true);
 				
-				if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
-				{
-					if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-					{
-					 $googledistance = preg_replace("/[^0-9.]/", "", $result['rows'][0]['elements'][0]['distance']['text']); // store JUST the number (take out commas, letters, spaces etc.)
-					 $googledistancebool = true;
-					 $googleFromExists = true;
-					 $googleToExists = true;
-					}
-					else
-					{
-						if (isset($result['origin_addresses'][0]) && isset($result['destination_addresses'][0]))
-						{
-							if (($result['origin_addresses'][0] === "") && ($result['destination_addresses'][0] === ""))
-							{echo 'Google did not recognize the origin or destination address.<br>';}
-							elseif (($result['origin_addresses'][0] === "") && ($result['destination_addresses'][0] !== ""))
-							{
-							 $googleToExists = true;
-							 echo 'Google did not recognize the origin address.<br>';
-							}
-							elseif (($result['destination_addresses'][0] === "") && ($result['origin_addresses'][0] !== ""))
-							{
-							 $googleFromExists = true;
-							 echo 'Google did not recognize the destination address.<br>';
-							}
-						}
-						else // If either origin or destination addresses are left blank, Google decides not to send back any data at all, even if one of the addresses was valid!
-						{
-							if (($inputfrom === "") && ($inputto === ""))
-							{echo 'Google: Both the origin and destination address is blank.<br>';}
-							elseif (($inputfrom === "") && ($inputto !== ""))
-							{
-								$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputto&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial";
-								//$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputto&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
-								$data = @file_get_contents($url); // $data = @file_get_contents($url_key);
-								$result = json_decode($data, true);
-								if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
-								{
-									if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-									{$googleToExists = true;}
-								}
-								if ($googleToExists === true)
-								{echo 'Google: The origin address is blank.<br>';}
-								else
-								{echo 'Google: The origin address is blank and the destination address was not recognized by Google.';}
-							}
-							elseif (($inputfrom !== "") && ($inputto === ""))
-							{
-								$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputfrom&mode=driving&language=en-EN&sensor=false&units=imperial";
-								//$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputfrom&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
-								$data = @file_get_contents($url); // $data = @file_get_contents($url_key);
-								$result = json_decode($data, true);
-								if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
-								{
-									if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
-									{$googleFromExists = true;}
-								}
-								if ($googleFromExists === true)
-								{echo 'Google: The destination address is blank.<br>';}
-								else
-								{echo 'Google: The destination address is blank and the origin address was not recognized by Google.<br>';}
-							}
-						}
-					}
-				}
-				else
-				{echo "There was a problem retrieving information from Google's servers.<br>The website might have changed.<br>";}
+	if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
+	{
+		if (isset($result['rows'][0]['elements'][0]['distance']['text'])) // This will only be true if Google recognizes the zip code and returns the 'distance' in 'text'.
+		{
+		 $googledistance = preg_replace("/[^0-9.]/", "", $result['rows'][0]['elements'][0]['distance']['text']); // store JUST the number (take out commas, letters, spaces etc.)
+		 $googledistancebool = true;
+		 $googleFromExists = true;
+		 $googleToExists = true;
+		}
+		else
+		{
+			if (isset($result['origin_addresses'][0]))
+			{
+				if ($result['origin_addresses'][0] !== "")
+				{$googleFromExists = true;}
 			}
-			else
-			{echo 'Can only calculate driving distance when connected to the internet. Please check your connection.<br>';}
+
+			if (isset($result['destination_addresses'][0]))
+			{
+				if ($result['destination_addresses'][0] !== "")
+				{$googleToExists = true;}
+			}
+
+			if (($googleFromExists === true) && ($googleToExists === false))
+			{echo 'Google did not recognize the destination address.<br>';}
+			elseif (($googleFromExists === false) && ($googleToExists === true))
+			{echo 'Google did not recognize the origin address.<br>';}
+			elseif (($googleFromExists === false) && ($googleToExists === false))
+			{echo 'Google did not recognize the origin or destination address.<br>';}
+		}
+	}
+	else
+	{echo "There was a problem retrieving information from Google's servers.<br>The website might have changed.<br>";}
+}
+else
+{echo 'Can only calculate driving distance when connected to the internet. Please check your connection.<br>';}
 // END GOOGLE API SECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
@@ -309,7 +275,7 @@ function getfocus()
 function disableSubmit1(thisform)
 {
  $('submitbutton_1').disabled = true;
- //thisform.action = "<?php echo htmlentities($_SERVER['PHP_SELF'], ENT_QUOTES, "UTF-8"); ?>"; // this action attribute can be changed to any existing PHP file.
+ //thisform.action = "<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, "UTF-8"); ?>"; // this action attribute can be changed to any existing PHP file.
  thisform.submit();
 }
 
