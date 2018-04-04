@@ -208,7 +208,7 @@ if (is_connected()) // No need to try continuing with these steps if you're not 
     ),
 );
  
- $data = file_get_contents($url, false, stream_context_create($arrContextOptions)); // $data = @file_get_contents($url_key);
+ $data = @file_get_contents($url, false, stream_context_create($arrContextOptions)); // $data = @file_get_contents($url_key);
  $result = json_decode($data, true);
 				
 	if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
