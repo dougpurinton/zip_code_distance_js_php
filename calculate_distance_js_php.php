@@ -173,7 +173,18 @@ if (is_connected()) // No need to try continuing with these steps if you're not 
 {
  $url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial";
  //$url_key = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$inputfrom&destinations=$inputto&mode=driving&language=en-EN&sensor=false&units=imperial&key=YOUR_KEY";
- $data = @file_get_contents($url); // $data = @file_get_contents($url_key);
+ 
+ // http://php.net/manual/en/migration56.openssl.php
+ // https://stackoverflow.com/questions/26148701/file-get-contents-ssl-operation-failed-with-code-1-and-more
+ 
+ $arrContextOptions=array(
+    "ssl"=>array(
+        "verify_peer"=>false,
+        "verify_peer_name"=>false,
+    ),
+);
+ 
+ $data = file_get_contents($url, false, stream_context_create($arrContextOptions)); // $data = @file_get_contents($url_key);
  $result = json_decode($data, true);
 				
 	if ($result !== null && json_last_error() === JSON_ERROR_NONE) // Is there actually any information in JSON format from the URL that we requested?
